@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LM Patio — Remote LM Studio Client</title>
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <div class="app-container">
+      
+      <!-- SIDEBAR: Profile Manager & Subnet Sweep -->
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-logo"></span>
+          <h1 class="brand-name">LM Patio</h1>
+          <span class="version-tag">v1.0.0</span>
+        </div>
+
+        <!-- Elegant Tab Navigation Bar -->
+        <nav id="workspace-tabs" class="tab-navigation">
+          <button id="tab-btn-library" class="tab-btn active">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9"></rect>
+              <rect x="14" y="3" width="7" height="5"></rect>
+              <rect x="14" y="12" width="7" height="9"></rect>
+              <rect x="3" y="16" width="7" height="5"></rect>
+            </svg>
+            <span class="tab-text">My Library & VRAM</span>
+          </button>
+          <button id="tab-btn-downloader" class="tab-btn">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span class="tab-text">HF Downloader Hub</span>
+            <span class="badge-dot hidden" id="download-active-dot"></span>
+          </button>
+        </nav>
+
+        <!-- Connection Profiles Section -->
+        <div class="sidebar-section">
+          <div class="section-header">
+            <h2>Connection Profiles</h2>
+            <button id="btn-add-profile-toggle" class="icon-btn" title="Add profile manually">+</button>
+          </div>
+
+          <!-- Add Profile Form (Collapsed by default) -->
+          <form id="form-add-profile" class="profile-form hidden">
+            <div class="form-group">
+              <label for="profile-name">Label / Name</label>
+              <input type="text" id="profile-name" placeholder="e.g. Basement Workstation" required />
+            </div>
+            <div class="form-group">
+              <label for="profile-host">Host URL</label>
+              <input type="url" id="profile-host" placeholder="http://100.115.92.14:1234" required />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-sm">Save</button>
+              <button type="button" id="btn-add-profile-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+            </div>
+          </form>
+
+          <!-- Profiles List -->
+          <div id="profiles-list" class="profiles-list">
+            <!-- Dynamic Profiles will be injected here -->
+          </div>
+        </div>
+
+        <!-- Subnet Discovery Section -->
+        <div class="sidebar-section subnet-section">
+          <div class="section-header">
+            <h2>Auto-Discovery</h2>
+            <button id="btn-scan-subnet" class="btn btn-accent btn-sm">
+              <span class="btn-text">Scan Subnet</span>
+              <span class="spinner hidden"></span>
+            </button>
+          </div>
+          <p class="section-desc">Sweeps local and VPN interfaces on port 1234</p>
+          
+          <!-- Custom Subnet Sweep Input -->
+          <div class="custom-subnet-input-row">
+            <input type="text" id="subnet-prefix-input" placeholder="Tailnet/Subnet IP prefix (e.g. 100.115.92)" />
+          </div>
+          
+          <div id="scan-results" class="scan-results">
+            <!-- Discovered servers will be injected here -->
+            <div class="no-results-msg">Click scan to auto-discover servers.</div>
+          </div>
+        </div>
+
+        <!-- Active Server Telemetry in Sidebar Footer -->
+        <div class="sidebar-footer">
+          <div class="connection-telemetry">
+            <span class="status-indicator-dot disconnected" id="sidebar-status-dot"></span>
+            <div class="telemetry-info">
+              <span class="status-label" id="sidebar-status-label">Offline</span>
+              <span class="active-host-url" id="sidebar-host-url">No server selected</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT PANEL -->
+      <main class="main-panel">
+        
+        <!-- Header / Telemetry Bar -->
+        <header class="main-header">
+          <div class="header-details">
+            <h2 id="active-server-name">LM Studio Remote console</h2>
+            <span class="host-badge" id="active-server-badge">disconnected</span>
+          </div>
+          <div class="header-actions">
+            <span class="vram-slots-badge hidden" id="vram-loaded-badge">0 Models Loaded</span>
+            <button id="btn-refresh-dashboard" class="btn btn-secondary" title="Refresh server details">
+              <svg class="refresh-icon" viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Elegant Tab Navigation Bar removed from here and moved to sidebar -->
+
+        <!-- Dynamic Content Area -->
+        <div class="dashboard-body">
+          
+          <!-- OFFLINE ERROR SCREEN (Troubleshooting details) -->
+          <div id="offline-screen" class="offline-screen">
+            <div class="error-container">
+              <div class="error-icon-wrapper">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" class="error-icon">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <h3>Cannot Connect to LM Studio Server</h3>
+              <p class="error-desc" id="offline-error-details">The remote endpoint could not be reached. Ensure the server is active and accessible.</p>
+              
+              <div class="troubleshooting-card">
+                <h4>Dynamic Troubleshooting Guide</h4>
+                <ol class="trouble-list">
+                  <li>
+                    <strong>Verify Server is Running:</strong>
+                    <span>Ensure LM Studio is open on the remote host machine.</span>
+                  </li>
+                  <li>
+                    <strong>Enable the Local Server:</strong>
+                    <span>Go to the <strong>Developer / Server tab</strong> (left sidebar in LM Studio) and click the green <strong>"Start Server"</strong> button.</span>
+                  </li>
+                  <li>
+                    <strong>Check Network Path & Port:</strong>
+                    <span>Ensure the server's listening port matches (default <code>1234</code>) and the host IP is correct (e.g. <code>http://192.168.1.50:1234</code>).</span>
+                  </li>
+                  <li>
+                    <strong>Verify Network Connection:</strong>
+                    <span>Make sure your client device is on the same local network (Wi-Fi), or connect your personal <strong>Tailscale VPN</strong> client at the OS level.</span>
+                  </li>
+                </ol>
+              </div>
+              
+              <button id="btn-reconnect-fallback" class="btn btn-primary">Try Reconnecting</button>
+            </div>
+          </div>
+
+          <!-- CONNECTED DASHBOARD VIEW -->
+          <div id="connected-workspace" class="connected-workspace hidden">
+            
+            <!-- TAB PANEL 1: Stored Library & Loaded VRAM Slots -->
+            <div id="tab-content-library" class="tab-panel">
+              <!-- SECTION 1: Active Loaded Models Panel (VRAM Slot Status) -->
+              <section id="active-vram-section" class="dashboard-section">
+                <div class="section-title-bar">
+                  <h3>Active VRAM Slots</h3>
+                  <span class="section-subtitle">Loaded models currently allocating graphics memory</span>
+                </div>
+                <div id="active-models-container" class="active-models-container">
+                  <!-- Injected loaded models or clean empty state -->
+                </div>
+              </section>
+
+              <!-- SECTION 2: Stored GGUFs Model Library (Grid View) -->
+              <section class="dashboard-section">
+                <div class="section-title-bar">
+                  <h3>Stored Model Library</h3>
+                  <div class="search-filter-wrapper">
+                    <input type="text" id="library-search" placeholder="Search stored GGUFs..." />
+                  </div>
+                </div>
+                <div id="stored-models-grid" class="models-grid">
+                  <!-- Stored models cards injected here -->
+                </div>
+              </section>
+            </div>
+
+            <!-- TAB PANEL 2: Remote GGUF Downloader Hub -->
+            <div id="tab-content-downloader" class="tab-panel hidden">
+              <!-- Offline Warning Banner -->
+              <div id="downloader-offline-warning" class="downloader-offline-warning hidden">
+                <div class="warning-banner-content">
+                  <svg class="warning-banner-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <div class="warning-banner-text">
+                    <strong>Remote Server Offline:</strong> You can search Hugging Face and browse quants, but downloading requires an active LM Studio connection.
+                  </div>
+                </div>
+              </div>
+              <!-- SECTION 3: Hugging Face Downloader Panel -->
+              <section class="dashboard-section hf-downloader-section">
+                <div class="section-title-bar">
+                  <h3>Hugging Face Remote Downloader</h3>
+                  <span class="section-subtitle">Search public repositories or enter IDs directly to choose quants and sizes</span>
+                </div>
+                
+                <div class="downloader-controls-card">
+                  <!-- Unified Search & Fetch form -->
+                  <form id="form-hf-unified" class="hf-unified-form">
+                    <div class="input-action-row">
+                      <div class="search-input-container" style="flex: 1; position: relative; display: flex; align-items: center;">
+                        <input type="text" id="hf-unified-input" placeholder="Search models (e.g. llama 3) OR enter full Repo ID (e.g. bartowski/Meta-Llama-3-8B-Instruct-GGUF)" required style="width: 100%; padding-right: 32px;" />
+                        <button type="button" id="btn-clear-search" class="btn-clear-search hidden" title="Clear search" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; line-height: 1;">&times;</button>
+                      </div>
+                      <button type="submit" id="btn-submit-unified" class="btn btn-accent">
+                        <span class="btn-text">Query / Search</span>
+                        <span class="spinner hidden"></span>
+                      </button>
+                    </div>
+                    
+                    <!-- Sorting Controls Row -->
+                    <div class="sort-controls-row">
+                      <span class="sort-label">Sort by:</span>
+                      <div class="sort-buttons-group">
+                        <button type="button" class="btn btn-sort active" data-sort="downloads">
+                          <svg class="sort-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                          </svg>
+                          <span>Most Downloads</span>
+                        </button>
+                        <button type="button" class="btn btn-sort" data-sort="likes">
+                          <svg class="sort-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                          </svg>
+                          <span>Most Likes</span>
+                        </button>
+                        <button type="button" class="btn btn-sort" data-sort="lastModified">
+                          <svg class="sort-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                          <span>Most Recent</span>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+
+                  <!-- Search Results Autocomplete Dropdown List -->
+                  <div id="hf-search-results-box" class="hf-search-results-box hidden">
+                    <!-- Dynamic search rows will be injected here -->
+                  </div>
+
+                  <!-- Quantization Picker -->
+                  <div id="quant-picker-area" class="quant-picker-area hidden">
+                    <div class="quant-picker-header-row">
+                      <h4 id="quant-picker-repo-title">Available Quantization Files</h4>
+                      <button id="btn-close-quant-picker" class="btn btn-secondary btn-sm" title="Clear Picker">Close Picker</button>
+                    </div>
+                    <div class="quant-list-header">
+                      <span>GGUF Quantization File</span>
+                      <span>File Size</span>
+                      <span>Action</span>
+                    </div>
+                    <div id="quant-files-list" class="quant-files-list">
+                      <!-- Dynamic quantization rows will be injected here -->
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- SECTION 4: Active Downloads Trackers -->
+              <section id="downloads-tracker-section" class="dashboard-section hidden">
+                <div class="section-title-bar">
+                  <h3>Remote Download Jobs</h3>
+                  <span class="section-subtitle">Real-time bandwidth and progress telemetry from the server</span>
+                </div>
+                <div id="downloads-list" class="downloads-list">
+                  <!-- Dynamic active download progress bars injected here -->
+                </div>
+              </section>
+            </div>
+
+          </div>
+
+        </div>
+      </main>
+
+    </div>
+
+    <!-- MODEL LOAD CONFIGURATION MODAL (WITH VRAM ESTIMATOR) -->
+    <div id="load-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Load Model to VRAM</h3>
+          <button id="btn-close-load-modal" class="icon-btn" title="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="model-meta-preview">
+            <h4 id="load-modal-model-name">Model Name</h4>
+            <span class="host-badge" id="load-modal-model-size">0.00 GB</span>
+          </div>
+
+          <!-- Dynamic VRAM Allocator Estimation Card -->
+          <div class="vram-estimator-card">
+            <div class="estimator-header">
+              <span>Estimated VRAM Allocation</span>
+              <span class="vram-total-badge" id="vram-estimate-total">0.00 GB</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="vram-estimate-progress" style="width: 100%"></div>
+            </div>
+            <div class="vram-breakdown">
+              <span>Weights: <strong id="vram-estimate-weights">0.00 GB</strong></span>
+              <span>KV Cache: <strong id="vram-estimate-kv">0.00 GB</strong></span>
+            </div>
+          </div>
+
+          <!-- Loading Parameters Form -->
+          <form id="form-load-parameters">
+            <!-- GPU Offload Slider -->
+            <div class="form-group">
+              <div class="slider-header">
+                <label for="param-gpu-ratio">GPU Offload Ratio</label>
+                <span class="slider-value" id="param-gpu-ratio-val">100%</span>
+              </div>
+              <input type="range" id="param-gpu-ratio" min="0" max="100" value="100" />
+            </div>
+
+            <!-- Context Length Dropdown -->
+            <div class="form-group">
+              <label for="param-context-length">Context Length</label>
+              <select id="param-context-length">
+                <!-- Dynamically populated up to Native Max -->
+              </select>
+            </div>
+
+            <!-- KV Cache Precision -->
+            <div class="form-group">
+              <label for="param-kv-precision">KV Cache Precision</label>
+              <select id="param-kv-precision">
+                <option value="fp16" selected>16-bit Float (High Quality / Native)</option>
+                <option value="q8_0">8-bit Quantized (Saves ~50% KV VRAM)</option>
+                <option value="q4_0">4-bit Quantized (Saves ~75% KV VRAM)</option>
+              </select>
+            </div>
+
+            <!-- Flash Attention Checkbox -->
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="param-flash-attention" checked />
+              <label for="param-flash-attention">Enable Flash Attention (Speeds up prompt processing)</label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btn-submit-load-model">Initiate VRAM Load</button>
+              <button type="button" id="btn-cancel-load-modal" class="btn btn-secondary">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
