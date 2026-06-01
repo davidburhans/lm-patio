@@ -29,20 +29,25 @@ pub struct GgufFileOption {
     recommended: bool,
 }
 
-fn get_profiles_path() -> PathBuf {
-    let mut path = if let Ok(home) = std::env::var("HOME") {
-        PathBuf::from(home)
-    } else if let Ok(profile) = std::env::var("USERPROFILE") {
-        PathBuf::from(profile)
-    } else {
-        PathBuf::from(".")
-    };
-    path.push(".lm_patio_profiles.json");
+fn get_profiles_path(app: &tauri::AppHandle) -> PathBuf {
+    use tauri::Manager;
+    let mut path = app.path().app_local_data_dir().unwrap_or_else(|_| {
+        if let Ok(home) = std::env::var("HOME") {
+            PathBuf::from(home)
+        } else if let Ok(profile) = std::env::var("USERPROFILE") {
+            PathBuf::from(profile)
+        } else {
+            PathBuf::from(".")
+        }
+    });
+    // Ensure the directory exists
+    let _ = fs::create_dir_all(&path);
+    path.push("lm_patio_profiles.json");
     path
 }
 
-fn load_profiles_from_disk() -> Vec<Profile> {
-    let path = get_profiles_path();
+fn load_profiles_from_disk(app: &tauri::AppHandle) -> Vec<Profile> {
+    let path = get_profiles_path(app);
     if path.exists() {
         if let Ok(data) = fs::read_to_string(path) {
             if let Ok(profiles) = serde_json::from_str::<Vec<Profile>>(&data) {
@@ -50,17 +55,12 @@ fn load_profiles_from_disk() -> Vec<Profile> {
             }
         }
     }
-    // Return a default profile with localhost
-    vec![Profile {
-        id: "default-local".to_string(),
-        name: "Local LM Studio".to_string(),
-        host: "http://localhost:1234".to_string(),
-        is_active: true,
-    }]
+    // Return empty by default on mobile/desktop since localhost is not running LM Studio
+    Vec::new()
 }
 
-fn save_profiles_to_disk(profiles: &[Profile]) -> Result<(), String> {
-    let path = get_profiles_path();
+fn save_profiles_to_disk(app: &tauri::AppHandle, profiles: &[Profile]) -> Result<(), String> {
+    let path = get_profiles_path(app);
     let data = serde_json::to_string_pretty(profiles)
         .map_err(|e| format!("Failed to serialize profiles: {}", e))?;
     fs::write(path, data)
@@ -156,13 +156,13 @@ async fn scan_subnet(prefix: Option<String>) -> Result<Vec<DiscoveredHost>, Stri
 }
 
 #[tauri::command]
-fn get_profiles() -> Result<Vec<Profile>, String> {
-    Ok(load_profiles_from_disk())
+fn get_profiles(app: tauri::AppHandle) -> Result<Vec<Profile>, String> {
+    Ok(load_profiles_from_disk(&app))
 }
 
 #[tauri::command]
-fn save_profile(profile: Profile) -> Result<Vec<Profile>, String> {
-    let mut profiles = load_profiles_from_disk();
+fn save_profile(app: tauri::AppHandle, profile: Profile) -> Result<Vec<Profile>, String> {
+    let mut profiles = load_profiles_from_disk(&app);
     
     // If the profile already exists, update it. Otherwise, add it.
     if let Some(pos) = profiles.iter().position(|p| p.id == profile.id) {
@@ -180,13 +180,13 @@ fn save_profile(profile: Profile) -> Result<Vec<Profile>, String> {
         }
     }
 
-    save_profiles_to_disk(&profiles)?;
+    save_profiles_to_disk(&app, &profiles)?;
     Ok(profiles)
 }
 
 #[tauri::command]
-fn delete_profile(id: String) -> Result<Vec<Profile>, String> {
-    let mut profiles = load_profiles_from_disk();
+fn delete_profile(app: tauri::AppHandle, id: String) -> Result<Vec<Profile>, String> {
+    let mut profiles = load_profiles_from_disk(&app);
     profiles.retain(|p| p.id != id);
 
     // If we deleted the active profile and we still have other profiles, activate the first one
@@ -194,17 +194,17 @@ fn delete_profile(id: String) -> Result<Vec<Profile>, String> {
         profiles[0].is_active = true;
     }
 
-    save_profiles_to_disk(&profiles)?;
+    save_profiles_to_disk(&app, &profiles)?;
     Ok(profiles)
 }
 
 #[tauri::command]
-fn set_active_profile(id: String) -> Result<Vec<Profile>, String> {
-    let mut profiles = load_profiles_from_disk();
+fn set_active_profile(app: tauri::AppHandle, id: String) -> Result<Vec<Profile>, String> {
+    let mut profiles = load_profiles_from_disk(&app);
     for p in &mut profiles {
         p.is_active = p.id == id;
     }
-    save_profiles_to_disk(&profiles)?;
+    save_profiles_to_disk(&app, &profiles)?;
     Ok(profiles)
 }
 
