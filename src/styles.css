@@ -1734,6 +1734,10 @@ select:focus {
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background-color: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
+    
+    /* Safe Area Padding for mobile status bars and navigation notches */
+    padding-top: max(env(safe-area-inset-top), 24px);
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
   }
   
   .sidebar.open {
@@ -1785,9 +1789,22 @@ select:focus {
   
   /* Header responsive layout */
   .main-header {
-    height: 64px;
-    padding: 0 16px;
+    /* Respect physical notches & status bar overlays */
+    padding-top: max(env(safe-area-inset-top), 24px);
+    height: calc(64px + max(env(safe-area-inset-top), 24px));
+    padding-left: max(env(safe-area-inset-left), 16px);
+    padding-right: max(env(safe-area-inset-right), 16px);
     gap: 8px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(12, 13, 16, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Main content panel safe area padding bottom */
+  .main-panel {
+    padding-bottom: max(env(safe-area-inset-bottom), 12px);
   }
   
   .header-details h2 {
