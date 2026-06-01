@@ -1728,7 +1728,7 @@ select:focus {
     top: 0;
     left: -100%;
     bottom: 0;
-    width: 290px;
+    width: 80vw;
     height: 100vh;
     z-index: 1000;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
