@@ -798,6 +798,14 @@ async function selectActiveProfile(id: string) {
 // CONNECTION MANAGEMENT & TELEMETRY
 // ==========================================================================
 async function connectToProfile(profile: Profile) {
+  // Auto-close sidebar on mobile
+  const sidebarEl = document.querySelector(".sidebar");
+  const sidebarOverlay = document.getElementById("sidebar-overlay");
+  if (sidebarEl && sidebarOverlay) {
+    sidebarEl.classList.remove("open");
+    sidebarOverlay.classList.remove("active");
+  }
+
   sidebarHostUrlEl.textContent = profile.host;
   sidebarStatusLabelEl.textContent = "Connecting...";
   sidebarStatusDotEl.className = "status-indicator-dot offline";
