@@ -25,3 +25,8 @@ dist-ssr
 
 # Antigravity CLI
 .antigravitycli/
+
+# Mobile Builds & Source Icon Assets
+src-tauri/gen/
+app_icon.png
+app_icon_fixed.png

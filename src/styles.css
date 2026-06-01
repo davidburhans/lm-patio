@@ -1701,3 +1701,292 @@ select:focus {
 .btn-clear-search:hover {
   color: var(--text-primary) !important;
 }
+
+/* ==========================================================================
+   LM Patio Mobile Optimization Layout & Design Tokens (Vibrant Dark Theme)
+   ========================================================================== */
+
+/* Hide mobile button by default on desktop */
+.mobile-menu-btn {
+  display: none;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Layout changes */
+  .app-container {
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* Sidebar converted into a premium mobile sliding drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    bottom: 0;
+    width: 290px;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+  }
+  
+  .sidebar.open {
+    left: 0;
+    box-shadow: 10px 0 40px rgba(0, 0, 0, 0.7);
+  }
+  
+  /* Backdrop overlay when sidebar is sliding open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Show mobile menu button inside the header */
+  .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 12px;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-menu-btn:hover {
+    background: var(--border-color);
+    color: var(--color-success);
+    border-color: var(--border-hover);
+  }
+  
+  /* Header responsive layout */
+  .main-header {
+    height: 64px;
+    padding: 0 16px;
+    gap: 8px;
+  }
+  
+  .header-details h2 {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 170px;
+  }
+  
+  .host-badge {
+    font-size: 8px;
+    padding: 1px 6px;
+    margin-top: 1px;
+  }
+  
+  .vram-slots-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  
+  /* Content areas spacing */
+  #tab-content-library,
+  #tab-content-downloader {
+    padding: 16px !important;
+  }
+  
+  .dashboard-section {
+    margin-bottom: 24px;
+  }
+  
+  .section-title-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  
+  .search-filter-wrapper {
+    width: 100%;
+  }
+  
+  /* Library Models Grid */
+  .models-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .model-card {
+    padding: 14px;
+    gap: 10px;
+  }
+  
+  .model-name {
+    font-size: 13px;
+    height: auto;
+    max-height: 38px;
+    -webkit-line-clamp: 2;
+  }
+  
+  /* Active VRAM model cards */
+  .active-model-card {
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .active-model-meta {
+    gap: 10px;
+  }
+  
+  .active-model-stats {
+    font-size: 9px;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  
+  .active-model-card .btn {
+    width: 100%;
+  }
+
+  /* HF Downloader controls layout */
+  .input-action-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .input-action-row button[type="submit"] {
+    width: 100%;
+    height: 40px;
+  }
+  
+  .sort-controls-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  
+  .sort-buttons-group {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+  
+  .btn-sort {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  /* Quantization Picker Layout on Mobile */
+  .quant-picker-area {
+    padding: 12px;
+  }
+  
+  .quant-picker-header-row h4 {
+    font-size: 13px;
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .quant-list-header {
+    display: none; /* Hide grid headers on mobile */
+  }
+  
+  .quant-file-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--bg-primary);
+  }
+  
+  .quant-file-row > div:nth-child(1) {
+    font-weight: 600;
+  }
+  
+  .quant-file-row > div:nth-child(2) {
+    color: var(--text-secondary);
+    font-size: 11px;
+  }
+  
+  .quant-file-row button {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  /* Active downloads trackers cards */
+  .download-card {
+    padding: 12px;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .download-info {
+    width: 100%;
+  }
+  
+  .download-meta {
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  /* Modal responsive fits */
+  .modal-card {
+    width: 92%;
+    max-width: 360px;
+    padding: 16px;
+  }
+  
+  .modal-header h3 {
+    font-size: 15px;
+  }
+  
+  .vram-estimator-card {
+    padding: 10px;
+  }
+  
+  .vram-breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
+}

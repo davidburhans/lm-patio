@@ -549,12 +549,45 @@ window.addEventListener("DOMContentLoaded", async () => {
   tabBtnLibraryEl.addEventListener("click", () => {
     currentTab = "library";
     updateActiveTabViews();
+    
+    // Auto-close sidebar on mobile
+    const sidebarEl = document.querySelector(".sidebar");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    if (sidebarEl && sidebarOverlay) {
+      sidebarEl.classList.remove("open");
+      sidebarOverlay.classList.remove("active");
+    }
   });
 
   tabBtnDownloaderEl.addEventListener("click", () => {
     currentTab = "downloader";
     updateActiveTabViews();
+    
+    // Auto-close sidebar on mobile
+    const sidebarEl = document.querySelector(".sidebar");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    if (sidebarEl && sidebarOverlay) {
+      sidebarEl.classList.remove("open");
+      sidebarOverlay.classList.remove("active");
+    }
   });
+
+  // Mobile Sidebar Toggle Hooks
+  const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+  const sidebarOverlay = document.getElementById("sidebar-overlay");
+  const sidebarEl = document.querySelector(".sidebar");
+
+  if (btnToggleSidebar && sidebarOverlay && sidebarEl) {
+    btnToggleSidebar.addEventListener("click", () => {
+      sidebarEl.classList.toggle("open");
+      sidebarOverlay.classList.toggle("active");
+    });
+
+    sidebarOverlay.addEventListener("click", () => {
+      sidebarEl.classList.remove("open");
+      sidebarOverlay.classList.remove("active");
+    });
+  }
 
   // Hugging Face Unified Handlers
   formHfUnified.addEventListener("submit", handleHfUnifiedSubmit);
@@ -744,6 +777,15 @@ async function selectActiveProfile(id: string) {
     profiles = updated;
     activeProfile = profiles.find(p => p.is_active) || null;
     renderProfilesList();
+    
+    // Auto-close sidebar on mobile
+    const sidebarEl = document.querySelector(".sidebar");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    if (sidebarEl && sidebarOverlay) {
+      sidebarEl.classList.remove("open");
+      sidebarOverlay.classList.remove("active");
+    }
+
     if (activeProfile) {
       await connectToProfile(activeProfile);
     }
