@@ -38,7 +38,7 @@ LM Patio is built with a phased deployment architecture, starting with **Phase 1
 
 ```mermaid
 graph TD
-    subgraph Phase 1 [Phase 1: Proof of Concept - COMPLETE]
+    subgraph P1 ["Phase 1: Proof of Concept - COMPLETE"]
         P1_Net[OS-Level Networking: Wi-Fi, OS Tailscale]
         P1_WebRTC[WebRTC Subnet Scanning: port 1234 sweep]
         P1_VRAM[Dynamic VRAM Unloader: Auto-Collapse]
@@ -48,13 +48,13 @@ graph TD
         P1_Clear[Interactive Input Clear Triggers]
     end
 
-    subgraph Phase 2 [Phase 2: Managed LM Link - Future Ambition]
+    subgraph P2 ["Phase 2: Managed LM Link - Future Ambition"]
         P2_OAuth[auth.lmstudio.ai OAuth Login]
         P2_Tunnel[In-App Userspace Tailscale tsnet VPN Node]
         P2_Devices[Dynamic Tailnet Device Discovery]
     end
 
-    Phase 1 -->|Validation & Scale| Phase 2
+    P1 -->|Validation & Scale| P2
 ```
 
 ---
